@@ -1,0 +1,35 @@
+{
+  "name": "pay-to-exist",
+  "version": "1.0.0",
+  "description": "Pay to confirm your existence",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@react-three/fiber": "^8.15.0",
+    "@stripe/stripe-js": "^2.1.0",
+    "@supabase/supabase-js": "^2.38.0",
+    "axios": "^1.6.0",
+    "next": "^14.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "stripe": "^14.0.0",
+    "three": "^0.167.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "@types/three": "^0.167.2",
+    "autoprefixer": "^10.4.0",
+    "eslint": "^8.0.0",
+    "eslint-config-next": "^14.0.0",
+    "postcss": "^8.4.0",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5.0.0"
+  }
+}
