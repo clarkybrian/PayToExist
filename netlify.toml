@@ -2,11 +2,13 @@
   command = "npm run build"
   publish = ".next"
 
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
-
 [build.environment]
   NODE_VERSION = "20"
+  # Désactiver le scan de secrets pour les variables publiques Next.js
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
 
 # Redirects for client-side routing
 [[redirects]]
