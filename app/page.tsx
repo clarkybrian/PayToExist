@@ -134,8 +134,8 @@ export default function Home() {
     }
   }
 
-  // Obtenir la géolocalisation de l'utilisateur
-  const getUserLocation = () => {
+  // Obtenir la géolocalisation de l'utilisateur - DÉSACTIVÉ pour ne pas déranger les utilisateurs
+  /* const getUserLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -159,10 +159,10 @@ export default function Home() {
         }
       )
     }
-  }
+  } */
 
-  // Convertir les coordonnées en nom de ville (API reverse geocoding)
-  const getCityFromCoords = async (lat: number, lng: number) => {
+  // Convertir les coordonnées en nom de ville (API reverse geocoding) - DÉSACTIVÉ
+  /* const getCityFromCoords = async (lat: number, lng: number) => {
     try {
       // Utilisation d'une API gratuite pour le reverse geocoding
       const response = await fetch(
@@ -177,22 +177,23 @@ export default function Home() {
       // Erreur lors de la récupération de la ville
       return { city: 'Ville inconnue', country: 'Pays inconnu' }
     }
-  }
+  } */
 
   // Gérer le clic sur le bouton de paiement
   const handlePayment = async () => {
     let locationData = { city: 'Unknown', country: 'Unknown', lat: 0, lng: 0 }
 
-    if (userLocation) {
+    // Géolocalisation désactivée - utiliser des valeurs par défaut
+    /* if (userLocation) {
       const cityData = await getCityFromCoords(userLocation.lat, userLocation.lng)
       locationData = {
         ...cityData,
         lat: userLocation.lat,
         lng: userLocation.lng
       }
-    }
+    } */
 
-    // Rediriger vers Stripe avec les métadonnées de localisation
+    // Rediriger vers Stripe avec les métadonnées de localisation (génériques)
     const url = new URL(STRIPE_PAYMENT_LINK)
     url.searchParams.append('prefilled_metadata[city]', locationData.city)
     url.searchParams.append('prefilled_metadata[country]', locationData.country)
@@ -360,7 +361,7 @@ export default function Home() {
 
   useEffect(() => {
     fetchStats()
-    getUserLocation()
+    // getUserLocation() // DÉSACTIVÉ - ne plus demander la localisation aux utilisateurs
     
     // Actualiser les stats toutes les 30 secondes
     const interval = setInterval(fetchStats, 30000)
