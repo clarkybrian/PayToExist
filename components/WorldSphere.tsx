@@ -47,33 +47,37 @@ function Earth({ payments, onLocationClick }: EarthProps) {
           const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
           const data = imageData.data;
           
-          // Ajuster modérément chaque pixel pour un meilleur contraste
+          // Traitement de l'image pour un aspect plus réaliste comme la référence
           for (let i = 0; i < data.length; i += 4) {
-            // Appliquer une transformation plus douce
-            data[i] = Math.min(255, data[i] * 1.3);      // Rouge
-            data[i + 1] = Math.min(255, data[i + 1] * 1.3);  // Vert
-            data[i + 2] = Math.min(255, data[i + 2] * 1.7);  // Bleu (légèrement plus élevé pour la teinte)
+            // Équilibrer les canaux pour réduire la dominante bleue
+            data[i] = Math.min(255, data[i] * 1.5);      // Rouge (augmenté)
+            data[i + 1] = Math.min(255, data[i + 1] * 1.6);  // Vert (augmenté davantage)
+            data[i + 2] = Math.min(255, data[i + 2] * 1.3);  // Bleu (réduit)
             
-            // Améliorer le contraste entre continents et océans
+            // Améliorer le contraste pour faire ressortir les continents
             const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
             
             // Zones sombres (océans)
-            if (avg < 80) {
-              // Assombrir légèrement les océans pour plus de contraste avec les continents
-              data[i] *= 0.7;      // Rouge
-              data[i + 1] *= 0.75; // Vert
-              data[i + 2] *= 0.9;  // Bleu (réduire moins le bleu)
+            if (avg < 85) {
+              // Assombrir davantage les océans pour augmenter le contraste
+              const oceanBlue = 0.85; // Facteur de conservation du bleu
+              data[i] *= 0.45;        // Réduire encore plus le rouge
+              data[i + 1] *= 0.6;     // Réduire le vert davantage
+              data[i + 2] *= oceanBlue; // Conserver plus de bleu
               
-              // Ajouter une teinte bleue aux océans
-              data[i + 2] = Math.min(255, data[i + 2] + 25);
+              // Équilibrer pour un bleu d'océan réaliste
+              if (data[i + 2] < 100) {
+                data[i + 2] = Math.min(255, data[i + 2] + 40);
+              }
             }
             
             // Zones claires (continents)
             if (avg > 120) {
-              // Éclaircir davantage les continents
-              data[i] = Math.min(255, data[i] * 1.2);
-              data[i + 1] = Math.min(255, data[i + 1] * 1.2);
-              data[i + 2] = Math.min(255, data[i + 2] * 1.1);
+              // Traiter les continents pour les rendre plus naturels
+              // Ajouter des tons bruns/verts en augmentant le rouge et le vert
+              data[i] = Math.min(255, data[i] * 1.3);      // Rouge pour les tons bruns
+              data[i + 1] = Math.min(255, data[i + 1] * 1.4); // Vert pour la végétation
+              data[i + 2] = Math.min(255, data[i + 2] * 0.85); // Réduire le bleu
             }
           }
           
@@ -154,11 +158,11 @@ function Earth({ payments, onLocationClick }: EarthProps) {
         <sphereGeometry args={[2, 64, 64]} />
         <meshStandardMaterial
           map={earthTexture}
-          roughness={0.4}
-          metalness={0.1}
-          emissive="#bbccff"
-          emissiveIntensity={0.2}
-          color="#e6eeff"
+          roughness={0.5}
+          metalness={0.05}
+          emissive="#ffffff"
+          emissiveIntensity={0.1}
+          color="#f0f0f0"
         />
       </mesh>
 
@@ -200,14 +204,14 @@ export default function WorldSphere({ payments, onLocationClick }: WorldSpherePr
         camera={{ position: [0, 0, 5], fov: 60 }}
         style={{ background: 'white' }}
       >
-        {/* Lumière ambiante modérée avec légère teinte bleue */}
-        <ambientLight intensity={1.5} color="#e0e8ff" />
+        {/* Lumière ambiante neutre pour un éclairage général */}
+        <ambientLight intensity={1.2} color="#ffffff" />
         
-        {/* Lumière directionnelle frontale moins intense */}
-        <directionalLight position={[0, 0, 5]} intensity={2.5} color="#ffffff" />
+        {/* Lumière directionnelle frontale pour simuler le soleil */}
+        <directionalLight position={[0, 0, 5]} intensity={2.0} color="#fffaf0" />
         
-        {/* Lumière hémisphérique plus douce pour la teinte bleue */}
-        <hemisphereLight color="#aabbee" groundColor="#f0f0ff" intensity={1.0} />
+        {/* Lumière hémisphérique naturelle pour simuler l'atmosphère */}
+        <hemisphereLight color="#87ceeb" groundColor="#f5f5dc" intensity={0.7} />
         <Suspense fallback={<LoadingEarth />}>
           <Earth payments={payments} onLocationClick={onLocationClick} />
           <OrbitControls 

@@ -31,7 +31,7 @@ const languages: Language[] = [
   { 
     code: 'fr', 
     name: '🇫🇷 Français', 
-    title: 'Payez pour prouver que vous existez',
+    title: 'Payez 1€ pour prouver que vous existez',
     position: 'Votre position',
     recentConfirmations: 'Confirmations récentes',
     loading: 'Chargement...'
