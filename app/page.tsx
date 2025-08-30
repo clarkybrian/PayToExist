@@ -18,10 +18,103 @@ interface Stats {
   payments: Payment[]
 }
 
+interface Language {
+  code: string
+  name: string
+  title: string
+  position: string
+  recentConfirmations: string
+  loading: string
+}
+
+const languages: Language[] = [
+  { 
+    code: 'fr', 
+    name: '🇫🇷 Français', 
+    title: 'Payez pour prouver que vous existez',
+    position: 'Votre position',
+    recentConfirmations: 'Confirmations récentes',
+    loading: 'Chargement...'
+  },
+  { 
+    code: 'en', 
+    name: '🇺🇸 English', 
+    title: 'Pay to prove that you exist',
+    position: 'Your position',
+    recentConfirmations: 'Recent confirmations',
+    loading: 'Loading...'
+  },
+  { 
+    code: 'es', 
+    name: '🇪🇸 Español', 
+    title: 'Paga para demostrar que existes',
+    position: 'Tu posición',
+    recentConfirmations: 'Confirmaciones recientes',
+    loading: 'Cargando...'
+  },
+  { 
+    code: 'de', 
+    name: '🇩🇪 Deutsch', 
+    title: 'Bezahlen Sie, um zu beweisen, dass Sie existieren',
+    position: 'Ihre Position',
+    recentConfirmations: 'Aktuelle Bestätigungen',
+    loading: 'Laden...'
+  },
+  { 
+    code: 'it', 
+    name: '🇮🇹 Italiano', 
+    title: 'Paga per dimostrare che esisti',
+    position: 'La tua posizione',
+    recentConfirmations: 'Conferme recenti',
+    loading: 'Caricamento...'
+  },
+  { 
+    code: 'pt', 
+    name: '🇧🇷 Português', 
+    title: 'Pague para provar que você existe',
+    position: 'Sua posição',
+    recentConfirmations: 'Confirmações recentes',
+    loading: 'Carregando...'
+  },
+  { 
+    code: 'zh', 
+    name: '🇨🇳 中文', 
+    title: '付费证明你的存在',
+    position: '您的位置',
+    recentConfirmations: '最近确认',
+    loading: '加载中...'
+  },
+  { 
+    code: 'ja', 
+    name: '🇯🇵 日本語', 
+    title: 'あなたが存在することを証明するために支払う',
+    position: 'あなたの位置',
+    recentConfirmations: '最近の確認',
+    loading: '読み込み中...'
+  },
+  { 
+    code: 'ar', 
+    name: '🇸🇦 العربية', 
+    title: 'ادفع لتثبت أنك موجود',
+    position: 'موقعك',
+    recentConfirmations: 'التأكيدات الأخيرة',
+    loading: 'جاري التحميل...'
+  },
+  { 
+    code: 'ru', 
+    name: '🇷🇺 Русский', 
+    title: 'Заплатите, чтобы доказать, что вы существуете',
+    position: 'Ваше местоположение',
+    recentConfirmations: 'Недавние подтверждения',
+    loading: 'Загрузка...'
+  }
+]
+
 export default function Home() {
   const [stats, setStats] = useState<Stats>({ totalPayments: 0, payments: [] })
   const [loading, setLoading] = useState(true)
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [selectedLanguage, setSelectedLanguage] = useState<Language>(languages[0]) // Français par défaut
 
   // Récupérer les statistiques
   const fetchStats = async () => {
@@ -111,13 +204,31 @@ export default function Home() {
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-xl">Chargement...</div>
+        <div className="text-xl">{selectedLanguage.loading}</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="page-container bg-white">
+      {/* Sélecteur de langues */}
+      <div className="absolute top-4 right-4 z-10">
+        <select 
+          value={selectedLanguage.code}
+          onChange={(e) => {
+            const lang = languages.find(l => l.code === e.target.value)
+            if (lang) setSelectedLanguage(lang)
+          }}
+          className="bg-white border border-gray-300 rounded-lg px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm shadow-md hover:border-gray-400 transition-colors"
+        >
+          {languages.map((lang) => (
+            <option key={lang.code} value={lang.code}>
+              {lang.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {/* Sphère du monde */}
       <div className="w-full">
         <WorldSphere 
@@ -127,38 +238,38 @@ export default function Home() {
       </div>
 
       {/* Contenu principal */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="main-content container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <div className="text-center">
           {/* Titre principal */}
-          <h1 className="text-4xl font-bold text-black mb-8">
-            Nombre de personnes qui existent vraiment : {stats.totalPayments}
+          <h1 className="text-xl sm:text-2xl font-bold text-black mb-3 sm:mb-4">
+            {selectedLanguage.title} : {stats.totalPayments}
           </h1>
 
           {/* Bouton de paiement */}
           <button
             onClick={handlePayment}
-            className="bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-8 rounded-full text-xl transition-colors duration-200"
+            className="bg-red-500 hover:bg-red-600 text-white font-bold py-1.5 px-4 sm:py-2 sm:px-5 rounded-full text-sm sm:text-base transition-colors duration-200"
           >
-            Je confirme mon existence
+            Pay To Exist
           </button>
 
           {/* Informations de localisation */}
           {userLocation && (
-            <div className="mt-6 text-gray-600">
-              <p>Votre position: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}</p>
+            <div className="mt-4 text-gray-600 text-sm">
+              <p>{selectedLanguage.position}: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}</p>
             </div>
           )}
 
           {/* Liste des récents paiements */}
           {stats.payments.length > 0 && (
-            <div className="mt-12">
-              <h2 className="text-2xl font-bold text-black mb-4">Confirmations récentes</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="mt-6 sm:mt-8">
+              <h2 className="text-lg sm:text-xl font-bold text-black mb-2 sm:mb-3">{selectedLanguage.recentConfirmations}</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {stats.payments.slice(0, 6).map((payment, index) => (
-                  <div key={payment.id || index} className="bg-gray-100 p-4 rounded-lg">
-                    <p className="font-semibold">{payment.city}</p>
-                    <p className="text-gray-600">{payment.country}</p>
-                    <p className="text-sm text-gray-500">
+                  <div key={payment.id || index} className="bg-gray-100 p-3 sm:p-4 rounded-lg">
+                    <p className="font-semibold text-sm sm:text-base">{payment.city}</p>
+                    <p className="text-gray-600 text-xs sm:text-sm">{payment.country}</p>
+                    <p className="text-xs text-gray-500">
                       {new Date(payment.created_at).toLocaleString('fr-FR')}
                     </p>
                   </div>
@@ -168,6 +279,13 @@ export default function Home() {
           )}
         </div>
       </div>
+
+      {/* Footer - toujours au bas de la page */}
+      <footer className="bg-white py-3 sm:py-4 mt-auto">
+        <div className="container mx-auto px-2 sm:px-4 text-center text-gray-500 text-xs">
+          © 2025 Pay To Exist. Tous droits réservés. | Concept original by Clark
+        </div>
+      </footer>
     </div>
   )
 }

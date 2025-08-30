@@ -100,7 +100,7 @@ function LoadingEarth() {
 
 export default function WorldSphere({ payments, onLocationClick }: WorldSphereProps) {
   return (
-    <div className="w-full h-96 bg-white">
+    <div className="w-full h-64 sm:h-80 md:h-96 bg-white">
       <Canvas
         camera={{ position: [0, 0, 5], fov: 60 }}
         style={{ background: 'white' }}
