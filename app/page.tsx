@@ -278,42 +278,42 @@ export default function Home() {
       let delay: number;
       let increment: number;
       
-      // Phase 1 (0-10 secondes) - Démarrage rapide
-      if (elapsedTime < 10000) {
+      // Phase 1 (0-40 secondes) - Démarrage rapide (x4 plus lent)
+      if (elapsedTime < 40000) {
         increment = Math.floor(Math.random() * 2) + 2; // 2-3 incréments
-        delay = Math.random() * 500 + 1000; // 1-1.5 secondes
+        delay = Math.random() * 2000 + 4000; // 4-6 secondes
       }
-      // Phase 2 (10-30 secondes) - Ralentissement  
-      else if (elapsedTime < 30000) {
-        increment = 1;
-        delay = Math.random() * 1000 + 3000; // 3-4 secondes
-      }
-      // Phase 3 (30-60 secondes) - Rythme lent
-      else if (elapsedTime < 60000) {
-        increment = 1;
-        delay = Math.random() * 2000 + 10000; // 10-12 secondes
-      }
-      // Phase 4 (60-120 secondes) - Bursts périodiques
+      // Phase 2 (40-120 secondes) - Ralentissement (x4 plus lent)
       else if (elapsedTime < 120000) {
+        increment = 1;
+        delay = Math.random() * 4000 + 12000; // 12-16 secondes
+      }
+      // Phase 3 (120-240 secondes) - Rythme lent (x4 plus lent)
+      else if (elapsedTime < 240000) {
+        increment = 1;
+        delay = Math.random() * 8000 + 40000; // 40-48 secondes
+      }
+      // Phase 4 (240-480 secondes) - Bursts périodiques (x4 plus lent)
+      else if (elapsedTime < 480000) {
         // 30% de chance d'avoir un burst
         if (Math.random() < 0.3) {
           increment = Math.floor(Math.random() * 16) + 5; // 5-20 incréments
         } else {
           increment = 1;
         }
-        delay = Math.random() * 5000 + 10000; // 10-15 secondes
+        delay = Math.random() * 20000 + 40000; // 40-60 secondes
       }
-      // Phase 5 (Après 2 minutes) - Incrémentation régulière toutes les 2 minutes
+      // Phase 5 (Après 8 minutes) - Incrémentation régulière toutes les 8 minutes
       else {
-        // Reset du cycle après 2 minutes + délai de phase 5
-        if (elapsedTime > 240000) { // 4 minutes total (2min phases + 2min phase 5)
+        // Reset du cycle après 8 minutes + délai de phase 5
+        if (elapsedTime > 960000) { // 16 minutes total (8min phases + 8min phase 5)
           startTime = Date.now();
           scheduleNextIncrement();
           return;
         }
         
         increment = Math.floor(Math.random() * 3) + 1; // 1-3 incréments
-        delay = 120000; // Exactement 2 minutes
+        delay = 480000; // Exactement 8 minutes
       }
       
       timeoutId = setTimeout(() => {
@@ -324,9 +324,9 @@ export default function Home() {
           setLiveCounter(prev => {
             const newValue = prev + increment;
             
-            // Sauvegarder toutes les 20 secondes
+            // Sauvegarder toutes les 80 secondes (x4 plus lent)
             const now = Date.now();
-            if (now - lastSaveTime >= 20000) { // 20 secondes
+            if (now - lastSaveTime >= 80000) { // 80 secondes
               saveToDatabase(newValue);
               lastSaveTime = now;
             }
