@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, Suspense } from 'react'
+import { useRef, useState, Suspense, useEffect } from 'react'
 import { Canvas, useFrame, useLoader } from '@react-three/fiber'
 import * as THREE from 'three'
 
@@ -21,8 +21,16 @@ interface EarthProps {
 function Earth({ payments, onLocationClick }: EarthProps) {
   const meshRef = useRef<THREE.Mesh>(null)
   
-  // Charger la vraie texture satellite de la Terre
+  // Charger la vraie texture satellite de la Terre avec luminosité augmentée
   const earthTexture = useLoader(THREE.TextureLoader, '/earth-texture.jpg')
+  
+  // Appliquer des effets de luminosité améliorée
+  useEffect(() => {
+    if (earthTexture) {
+      earthTexture.colorSpace = THREE.SRGBColorSpace
+      earthTexture.anisotropy = 16
+    }
+  }, [earthTexture])
 
   // Rotation automatique lente
   useFrame((state, delta) => {
@@ -62,8 +70,10 @@ function Earth({ payments, onLocationClick }: EarthProps) {
         <sphereGeometry args={[2, 64, 64]} />
         <meshStandardMaterial
           map={earthTexture}
-          roughness={0.7}
-          metalness={0.0}
+          roughness={0.3}
+          metalness={0.2}
+          emissive="#666666"
+          emissiveIntensity={0.15}
         />
       </mesh>
 
@@ -93,7 +103,7 @@ function LoadingEarth() {
   return (
     <mesh>
       <sphereGeometry args={[2, 32, 32]} />
-      <meshStandardMaterial color="#1e40af" />
+      <meshStandardMaterial color="#3b82f6" emissive="#3b82f6" emissiveIntensity={0.2} />
     </mesh>
   )
 }
@@ -105,8 +115,10 @@ export default function WorldSphere({ payments, onLocationClick }: WorldSpherePr
         camera={{ position: [0, 0, 5], fov: 60 }}
         style={{ background: 'white' }}
       >
-        <ambientLight intensity={0.6} />
-        <pointLight position={[10, 10, 10]} intensity={1} />
+        <ambientLight intensity={1.5} />
+        <pointLight position={[10, 10, 10]} intensity={2.5} />
+        <pointLight position={[-10, -10, -10]} intensity={1.5} />
+        <directionalLight position={[0, 0, 5]} intensity={2.5} />
         <Suspense fallback={<LoadingEarth />}>
           <Earth payments={payments} onLocationClick={onLocationClick} />
         </Suspense>
