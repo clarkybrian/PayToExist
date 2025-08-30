@@ -1,8 +1,147 @@
 # Pay To Exist
 
-Application web permettant aux utilisateurs de "confirmer leur existence" en effectuant un paiement via Stripe. L'application affiche une sphère 3D interactive représentant la Terre avec les localisations des paiements.
+Une application web interactive qui permet aux utilisateurs de confirmer leur existence en effectuant un paiement symbolique de 1€. L'application affiche une sphère terrestre 3D interactive avec localisation en temps réel et un compteur live synchronisé avec une base de données.
 
-## Fonctionnalités
+## ✨ Fonctionnalités
+
+- **Sphère terrestre 3D interactive** avec texture réaliste
+- **Localisation en temps réel** avec marquage sur la sphère
+- **Compteur live** avec animation et synchronisation base de données
+- **Système de paiement Stripe** intégré
+- **Support multilingue** (français, anglais, espagnol, allemand, italien, portugais, chinois, japonais, arabe, russe)
+- **Interface responsive** avec design moderne
+
+## 🛠️ Technologies
+
+- **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS
+- **3D**: React Three Fiber, Three.js
+- **Base de données**: Supabase (PostgreSQL)
+- **Paiements**: Stripe
+- **Géolocalisation**: BigDataCloud API
+
+## 🚀 Installation
+
+1. **Cloner le projet**
+```bash
+git clone [URL_DU_REPO]
+cd PayToExist
+```
+
+2. **Installer les dépendances**
+```bash
+npm install
+```
+
+3. **Configuration des variables d'environnement**
+```bash
+cp .env.example .env.local
+```
+
+Modifier `.env.local` avec vos clés :
+```env
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
+
+# Stripe Configuration  
+STRIPE_SECRET_KEY=your_stripe_secret_key_here
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key_here
+STRIPE_WEBHOOK_SECRET=your_webhook_secret_here
+STRIPE_PAYMENT_LINK=your_payment_link_here
+```
+
+4. **Configurer la base de données**
+```bash
+npm run migrate
+```
+
+5. **Démarrer le serveur de développement**
+```bash
+npm run dev
+```
+
+## 📊 Système de compteur live
+
+Le compteur live utilise un système sophistiqué à 5 phases séquentielles basées sur le temps écoulé :
+
+### 🚀 Phase 1: Démarrage rapide (0-10 secondes)
+- **Incréments**: 2-3 unités
+- **Fréquence**: Toutes les 1-1.5 secondes
+- **Objectif**: Donner l'impression d'activité intense au début
+
+### 🔄 Phase 2: Ralentissement (10-30 secondes)  
+- **Incréments**: 1 unité
+- **Fréquence**: Toutes les 3-4 secondes
+- **Objectif**: Rythme plus naturel et réaliste
+
+### 🐌 Phase 3: Rythme lent (30-60 secondes)
+- **Incréments**: 1 unité
+- **Fréquence**: Toutes les 10-12 secondes
+- **Objectif**: Simulation d'une activité normale
+
+### 🎆 Phase 4: Bursts périodiques (60-120 secondes)
+- **Incréments**: 5-20 unités (bursts 30% du temps) ou 1 unité
+- **Fréquence**: Toutes les 10-15 secondes
+- **Objectif**: Pics d'activité imprévisibles
+
+### ⏰ Phase 5: Incrémentation régulière (Après 2 minutes)
+- **Incréments**: 1-3 unités
+- **Fréquence**: Exactement toutes les 2 minutes
+- **Objectif**: Maintenir une activité constante à long terme
+
+### 🔄 Cycle complet
+- **Durée totale**: 4 minutes (2min phases 1-4 + 2min phase 5)
+- **Redémarrage**: Retour automatique à la phase 1
+- **Persistance**: Chaque incrémentation est sauvegardée en base de données
+
+### Synchronisation base de données
+- Chaque incrémentation est persistée en base
+- Synchronisation automatique toutes les 30 secondes
+- Fonction PostgreSQL atomique pour éviter les conflits
+
+## 🧪 Tests
+
+Tester l'API du compteur :
+```bash
+npm run test:counter
+```
+
+## 📡 API Endpoints
+
+### GET /api/counter
+Récupère la valeur actuelle du compteur
+```json
+{
+  "success": true,
+  "value": 12345
+}
+```
+
+### POST /api/counter
+Incrémente le compteur
+```json
+{
+  "increment": 5
+}
+```
+
+### PUT /api/counter  
+Met à jour la valeur du compteur
+```json
+{
+  "value": 12345
+}
+```
+
+### GET /api/stats
+Récupère les statistiques des paiements
+```json
+{
+  "totalPayments": 42,
+  "payments": [...]
+}
+```
 
 - 🌍 **Sphère 3D interactive** : Visualisation de la Terre avec rotation automatique et contrôles manuels
 - 💳 **Paiements Stripe** : Intégration complète avec webhooks pour traitement automatique

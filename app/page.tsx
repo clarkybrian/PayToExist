@@ -118,6 +118,8 @@ export default function Home() {
   const [userCity, setUserCity] = useState<string | null>(null) // Ville de l'utilisateur
   const [liveCounter, setLiveCounter] = useState(0) // Compteur en temps réel
   const [isRolling, setIsRolling] = useState(false) // Animation de roulette
+  const [isCounterLoading, setIsCounterLoading] = useState(true)
+  const [lastSync, setLastSync] = useState(Date.now())
 
   // Récupérer les statistiques
   const fetchStats = async () => {
@@ -126,7 +128,7 @@ export default function Home() {
       const data = await response.json()
       setStats(data)
     } catch (error) {
-      console.error('Erreur lors de la récupération des statistiques:', error)
+      // Erreur lors de la récupération des statistiques
     } finally {
       setLoading(false)
     }
@@ -148,12 +150,12 @@ export default function Home() {
             const locationData = await getCityFromCoords(coords.lat, coords.lng)
             setUserCity(`${locationData.city}, ${locationData.country}`)
           } catch (error) {
-            console.error('Erreur lors de la récupération de la ville:', error)
+            // Erreur lors de la récupération de la ville
             setUserCity('Ville inconnue')
           }
         },
         (error) => {
-          console.log('Erreur de géolocalisation:', error)
+          // Erreur de géolocalisation
         }
       )
     }
@@ -172,7 +174,7 @@ export default function Home() {
         country: data.countryName || 'Pays inconnu'
       }
     } catch (error) {
-      console.error('Erreur lors de la récupération de la ville:', error)
+      // Erreur lors de la récupération de la ville
       return { city: 'Ville inconnue', country: 'Pays inconnu' }
     }
   }
@@ -200,62 +202,156 @@ export default function Home() {
     window.open(url.toString(), '_blank')
   }
 
-  // Système d'incrémentation aléatoire du compteur en temps réel
+  // Charger la valeur initiale du compteur depuis la base de données
   useEffect(() => {
-    // Initialiser le compteur live avec les vraies stats
-    setLiveCounter(stats.totalPayments)
-  }, [stats.totalPayments])
-
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout
-    let startTime = Date.now()
-
-    const incrementCounter = () => {
-      const elapsedTime = Date.now() - startTime
-      let nextDelay: number
-      let incrementCount: number
-
-      // Phase 1: Premières 10 secondes - Incrémentation rapide
-      if (elapsedTime < 10000) {
-        incrementCount = Math.random() < 0.7 ? (Math.random() < 0.5 ? 2 : 3) : 1
-        nextDelay = 1000 + Math.random() * 500 // 1-1.5 secondes
-      }
-      // Phase 2: 10-30 secondes - Ralentissement
-      else if (elapsedTime < 30000) {
-        incrementCount = 1
-        nextDelay = 3000 + Math.random() * 1000 // 3-4 secondes
-      }
-      // Phase 3: 30-60 secondes - Plus lent
-      else if (elapsedTime < 60000) {
-        incrementCount = 1
-        nextDelay = 10000 + Math.random() * 2000 // 10-12 secondes
-      }
-      // Phase 4: Après 60 secondes - Bursts périodiques
-      else {
-        // Reset du timer pour recommencer le cycle
-        if (elapsedTime > 70000) {
-          startTime = Date.now()
+    const loadInitialCounter = async () => {
+      try {
+        const response = await fetch('/api/counter');
+        const data = await response.json();
+        if (data.success && typeof data.value === 'number') {
+          setLiveCounter(data.value);
+        } else {
+          // Si pas de valeur en base, commencer à 1
+          setLiveCounter(1);
         }
-        incrementCount = Math.random() < 0.3 ? Math.floor(Math.random() * 15) + 5 : 1
-        nextDelay = 10000 + Math.random() * 5000 // 10-15 secondes
+      } catch (error) {
+        // En cas d'erreur, commencer à 1
+        setLiveCounter(1);
+      } finally {
+        setIsCounterLoading(false);
       }
+    };
 
-      // Animation de roulette
-      setIsRolling(true)
+    // Charger immédiatement au montage du composant
+    loadInitialCounter();
+  }, []); // Dépendances vides pour charger une seule fois au montage
+
+  // Synchronisation périodique avec la base de données
+  useEffect(() => {
+    if (isCounterLoading) return;
+
+    const syncInterval = setInterval(async () => {
+      try {
+        const response = await fetch('/api/counter');
+        const data = await response.json();
+        if (data.success) {
+          setLiveCounter(data.value);
+          setLastSync(Date.now());
+        }
+      } catch (error) {
+        // Erreur lors de la synchronisation du compteur
+      }
+    }, 30000); // Synchroniser toutes les 30 secondes
+
+    return () => clearInterval(syncInterval);
+  }, [isCounterLoading]);
+
+  // Animation du compteur avec mise à jour en base de données
+  useEffect(() => {
+    if (isCounterLoading) return;
+
+    let timeoutId: NodeJS.Timeout;
+    let startTime = Date.now();
+    let lastSaveTime = Date.now();
+    
+    // Fonction pour sauvegarder en base de données (toutes les 10 secondes)
+    const saveToDatabase = async (currentValue: number) => {
+      try {
+        const response = await fetch('/api/counter', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ value: currentValue }),
+        });
+        const data = await response.json();
+        if (data.success) {
+          // Sauvegarde réussie
+        }
+      } catch (error) {
+        // Erreur lors de la sauvegarde
+      }
+    };
+    
+    const scheduleNextIncrement = () => {
+      const elapsedTime = Date.now() - startTime;
+      let delay: number;
+      let increment: number;
       
-      setTimeout(() => {
-        setLiveCounter(prev => prev + incrementCount)
-        setIsRolling(false)
-      }, 300) // Animation de 300ms
-
-      timeoutId = setTimeout(incrementCounter, nextDelay)
-    }
+      // Phase 1 (0-10 secondes) - Démarrage rapide
+      if (elapsedTime < 10000) {
+        increment = Math.floor(Math.random() * 2) + 2; // 2-3 incréments
+        delay = Math.random() * 500 + 1000; // 1-1.5 secondes
+      }
+      // Phase 2 (10-30 secondes) - Ralentissement  
+      else if (elapsedTime < 30000) {
+        increment = 1;
+        delay = Math.random() * 1000 + 3000; // 3-4 secondes
+      }
+      // Phase 3 (30-60 secondes) - Rythme lent
+      else if (elapsedTime < 60000) {
+        increment = 1;
+        delay = Math.random() * 2000 + 10000; // 10-12 secondes
+      }
+      // Phase 4 (60-120 secondes) - Bursts périodiques
+      else if (elapsedTime < 120000) {
+        // 30% de chance d'avoir un burst
+        if (Math.random() < 0.3) {
+          increment = Math.floor(Math.random() * 16) + 5; // 5-20 incréments
+        } else {
+          increment = 1;
+        }
+        delay = Math.random() * 5000 + 10000; // 10-15 secondes
+      }
+      // Phase 5 (Après 2 minutes) - Incrémentation régulière toutes les 2 minutes
+      else {
+        // Reset du cycle après 2 minutes + délai de phase 5
+        if (elapsedTime > 240000) { // 4 minutes total (2min phases + 2min phase 5)
+          startTime = Date.now();
+          scheduleNextIncrement();
+          return;
+        }
+        
+        increment = Math.floor(Math.random() * 3) + 1; // 1-3 incréments
+        delay = 120000; // Exactement 2 minutes
+      }
+      
+      timeoutId = setTimeout(() => {
+        // Animation de roulette
+        setIsRolling(true);
+        
+        setTimeout(() => {
+          setLiveCounter(prev => {
+            const newValue = prev + increment;
+            
+            // Sauvegarder toutes les 20 secondes
+            const now = Date.now();
+            if (now - lastSaveTime >= 20000) { // 20 secondes
+              saveToDatabase(newValue);
+              lastSaveTime = now;
+            }
+            
+            return newValue;
+          });
+          setIsRolling(false);
+          
+          // Programmer le prochain incrément
+          scheduleNextIncrement();
+        }, 300);
+      }, delay);
+    };
 
     // Démarrer après 2 secondes pour laisser le temps de charger
-    timeoutId = setTimeout(incrementCounter, 2000)
-
-    return () => clearTimeout(timeoutId)
-  }, [])
+    timeoutId = setTimeout(() => {
+      scheduleNextIncrement();
+    }, 2000);
+    
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [isCounterLoading]);
 
   // Gérer le clic sur la sphère
   const handleLocationClick = (lat: number, lng: number) => {
@@ -345,15 +441,15 @@ export default function Home() {
               Pay To Exist
             </button>
 
-            {/* Informations de localisation */}
-            {userLocation && (
+            {/* Informations de localisation - Temporairement masquées */}
+            {/* {userLocation && (
               <div className="mb-6 text-gray-600 text-sm lg:text-base">
                 <p>{selectedLanguage.position}: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}</p>
                 {userCity && (
                   <p className="text-gray-700 font-medium mt-1">{userCity}</p>
                 )}
               </div>
-            )}
+            )} */}
 
             {/* Liste des récents paiements */}
             {stats.payments.length > 0 && (

@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_API_KEY || process.env.SUPABASE_API_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
@@ -20,7 +20,6 @@ export async function addPayment(city: string, country: string, latitude?: numbe
     ])
 
   if (error) {
-    console.error('Erreur lors de l\'ajout du paiement:', error)
     return null
   }
 
@@ -34,7 +33,6 @@ export async function getTotalPayments() {
     .select('*', { count: 'exact', head: true })
 
   if (error) {
-    console.error('Erreur lors de la récupération du nombre de paiements:', error)
     return 0
   }
 
@@ -49,9 +47,62 @@ export async function getAllPayments() {
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('Erreur lors de la récupération des paiements:', error)
     return []
   }
 
   return data || []
+}
+
+// Fonction pour récupérer la valeur du compteur en temps réel
+export async function getLiveCounter() {
+  const { data, error } = await supabase
+    .from('live_counter')
+    .select('counter_value')
+    .single()
+
+  if (error) {
+    return 0
+  }
+
+  return data?.counter_value || 0
+}
+
+// Fonction pour mettre à jour le compteur en temps réel
+export async function updateLiveCounter(newValue: number) {
+  const { error } = await supabase
+    .from('live_counter')
+    .update({ counter_value: newValue })
+    .eq('id', (await supabase.from('live_counter').select('id').single()).data?.id)
+
+  if (error) {
+    return false
+  }
+
+  return true
+}
+
+// Fonction pour incrémenter le compteur en temps réel
+export async function incrementLiveCounter(incrementBy: number = 1): Promise<number> {
+  try {
+    // Utiliser la fonction PostgreSQL pour une incrémentation atomique
+    const { data, error } = await supabase.rpc('increment_live_counter', {
+      increment_value: incrementBy
+    });
+    
+    if (error) {
+      // Fallback: méthode manuelle
+      const currentValue = await getLiveCounter();
+      const newValue = currentValue + incrementBy;
+      await updateLiveCounter(newValue);
+      return newValue;
+    }
+    
+    return data || 0;
+  } catch (error) {
+    // Fallback: méthode manuelle
+    const currentValue = await getLiveCounter();
+    const newValue = currentValue + incrementBy;
+    await updateLiveCounter(newValue);
+    return newValue;
+  }
 }
