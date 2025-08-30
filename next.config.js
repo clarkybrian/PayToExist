@@ -6,6 +6,11 @@ const nextConfig = {
     STRIPE_PUBLIC_KEY: process.env.STRIPE_PUBLIC_KEY,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
   },
+  // Configuration pour Netlify
+  trailingSlash: true,
+  images: {
+    unoptimized: true
+  },
 }
 
 module.exports = nextConfig

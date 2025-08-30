@@ -1,6 +1,77 @@
 # Pay To Exist
 
-Une application web interactive qui permet aux utilisateurs de confirmer leur existence en effectuant un paiement symbolique de 1€. L'application affiche une sphère terrestre 3D interactive avec localisation en temps réel et un compteur live synchronisé avec une base de données.
+Payez 1€ pour prouver que vous existez.
+
+## 🚀 Déploiement sur Netlify
+
+### 1. Prérequis
+- Compte GitHub avec le repo poussé
+- Compte Netlify
+- Base de données Supabase configurée  
+- Compte Stripe configuré
+
+### 2. Configuration Netlify
+
+1. **Connecter le repo :**
+   - Aller sur [Netlify](https://netlify.com)
+   - Cliquer "New site from Git"
+   - Connecter GitHub et sélectionner ce repo
+
+2. **Configuration de build :**
+   - Build command: `npm run build`
+   - Publish directory: `.next`
+   - Le fichier `netlify.toml` est déjà configuré
+
+3. **Variables d'environnement :**
+   Dans Netlify Dashboard > Site settings > Environment variables, ajouter :
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_or_test_...
+   STRIPE_SECRET_KEY=sk_live_or_test_...
+   STRIPE_WEBHOOK_SECRET=whsec_...
+   ```
+
+4. **Déployer :**
+   - Cliquer "Deploy site"
+   - Netlify détectera automatiquement Next.js
+
+### 3. Configuration post-déploiement
+
+1. **Webhook Stripe :**
+   - Aller dans Stripe Dashboard > Webhooks
+   - Ajouter endpoint: `https://your-site.netlify.app/api/webhook`
+   - Événements : `checkout.session.completed`
+
+2. **Base de données :**
+   - S'assurer que la table `live_counter` existe dans Supabase
+   - Exécuter `npm run migrate` localement si nécessaire
+
+## 🛠 Développement
+
+```bash
+npm install
+npm run dev
+```
+
+## 📁 Structure
+
+```
+/app
+  /api          # Routes API
+  page.tsx      # Page principale
+/components     # Composants React
+/lib           # Utilitaires (Supabase, Stripe)
+/public        # Assets statiques
+netlify.toml   # Configuration Netlify
+```
+
+## 🔧 Scripts
+
+- `npm run dev` - Serveur de développement
+- `npm run build` - Build de production  
+- `npm run migrate` - Migration base de données
+- `npm run test:counter` - Test API compteur
 
 ## ✨ Fonctionnalités
 
