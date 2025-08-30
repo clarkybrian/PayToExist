@@ -17,9 +17,10 @@ interface Payment {
 interface EarthProps {
   payments: Payment[]
   onLocationClick: (lat: number, lng: number) => void
+  userLocation?: { lat: number; lng: number } | null
 }
 
-function Earth({ payments, onLocationClick }: EarthProps) {
+function Earth({ payments, onLocationClick, userLocation }: EarthProps) {
   const meshRef = useRef<THREE.Mesh>(null)
   
   // Charger la vraie texture satellite de la Terre avec luminosité augmentée
@@ -81,6 +82,11 @@ function Earth({ payments, onLocationClick }: EarthProps) {
             }
           }
           
+          // Dessiner le point rouge de l'utilisateur directement sur la texture
+          if (userLocation) {
+            drawUserLocationOnTexture(ctx, canvas.width, canvas.height, userLocation.lat, userLocation.lng);
+          }
+          
           ctx.putImageData(imageData, 0, 0);
           
           // Remplacer la texture
@@ -94,7 +100,40 @@ function Earth({ payments, onLocationClick }: EarthProps) {
         }
       }
     }
-  }, [earthTexture])
+  }, [earthTexture, userLocation]) // Ajouter userLocation comme dépendance
+
+  // Fonction pour dessiner le point de l'utilisateur directement sur la texture
+  const drawUserLocationOnTexture = (ctx: CanvasRenderingContext2D, width: number, height: number, lat: number, lng: number) => {
+    // Convertir lat/lng en coordonnées UV de texture
+    const u = (lng + 180) / 360; // Longitude -180 à 180 devient 0 à 1
+    const v = (90 - lat) / 180;  // Latitude -90 à 90 devient 1 à 0 (inversé)
+    
+    // Convertir en coordonnées pixel
+    const x = u * width;
+    const y = v * height;
+    
+    // Dessiner un cercle rouge brillant
+    ctx.save();
+    
+    // Point principal
+    ctx.beginPath();
+    ctx.arc(x, y, Math.max(width, height) * 0.008, 0, 2 * Math.PI); // Taille relative à la texture
+    ctx.fillStyle = '#ff0000';
+    ctx.fill();
+    
+    // Halo lumineux
+    const gradient = ctx.createRadialGradient(x, y, 0, x, y, Math.max(width, height) * 0.015);
+    gradient.addColorStop(0, 'rgba(255, 0, 0, 0.8)');
+    gradient.addColorStop(0.5, 'rgba(255, 100, 100, 0.4)');
+    gradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
+    
+    ctx.beginPath();
+    ctx.arc(x, y, Math.max(width, height) * 0.015, 0, 2 * Math.PI);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    
+    ctx.restore();
+  }
 
   // Rotation automatique lente (désactivée quand les contrôles d'orbite sont actifs)
   const autoRotate = useRef(true);
@@ -186,6 +225,7 @@ function Earth({ payments, onLocationClick }: EarthProps) {
 interface WorldSphereProps {
   payments: Payment[]
   onLocationClick: (lat: number, lng: number) => void
+  userLocation?: { lat: number; lng: number } | null
 }
 
 function LoadingEarth() {
@@ -197,7 +237,7 @@ function LoadingEarth() {
   )
 }
 
-export default function WorldSphere({ payments, onLocationClick }: WorldSphereProps) {
+export default function WorldSphere({ payments, onLocationClick, userLocation }: WorldSphereProps) {
   return (
     <div className="w-full h-full bg-white">
       <Canvas
@@ -213,7 +253,7 @@ export default function WorldSphere({ payments, onLocationClick }: WorldSpherePr
         {/* Lumière hémisphérique naturelle pour simuler l'atmosphère */}
         <hemisphereLight color="#87ceeb" groundColor="#f5f5dc" intensity={0.7} />
         <Suspense fallback={<LoadingEarth />}>
-          <Earth payments={payments} onLocationClick={onLocationClick} />
+          <Earth payments={payments} onLocationClick={onLocationClick} userLocation={userLocation} />
           <OrbitControls 
             enableZoom={true} 
             enablePan={false} 

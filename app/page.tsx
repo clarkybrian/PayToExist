@@ -115,6 +115,9 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [selectedLanguage, setSelectedLanguage] = useState<Language>(languages[0]) // Français par défaut
+  const [userCity, setUserCity] = useState<string | null>(null) // Ville de l'utilisateur
+  const [liveCounter, setLiveCounter] = useState(0) // Compteur en temps réel
+  const [isRolling, setIsRolling] = useState(false) // Animation de roulette
 
   // Récupérer les statistiques
   const fetchStats = async () => {
@@ -133,11 +136,21 @@ export default function Home() {
   const getUserLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
+        async (position) => {
+          const coords = {
             lat: position.coords.latitude,
             lng: position.coords.longitude
-          })
+          }
+          setUserLocation(coords)
+          
+          // Récupérer le nom de la ville
+          try {
+            const locationData = await getCityFromCoords(coords.lat, coords.lng)
+            setUserCity(`${locationData.city}, ${locationData.country}`)
+          } catch (error) {
+            console.error('Erreur lors de la récupération de la ville:', error)
+            setUserCity('Ville inconnue')
+          }
         },
         (error) => {
           console.log('Erreur de géolocalisation:', error)
@@ -186,6 +199,63 @@ export default function Home() {
 
     window.open(url.toString(), '_blank')
   }
+
+  // Système d'incrémentation aléatoire du compteur en temps réel
+  useEffect(() => {
+    // Initialiser le compteur live avec les vraies stats
+    setLiveCounter(stats.totalPayments)
+  }, [stats.totalPayments])
+
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout
+    let startTime = Date.now()
+
+    const incrementCounter = () => {
+      const elapsedTime = Date.now() - startTime
+      let nextDelay: number
+      let incrementCount: number
+
+      // Phase 1: Premières 10 secondes - Incrémentation rapide
+      if (elapsedTime < 10000) {
+        incrementCount = Math.random() < 0.7 ? (Math.random() < 0.5 ? 2 : 3) : 1
+        nextDelay = 1000 + Math.random() * 500 // 1-1.5 secondes
+      }
+      // Phase 2: 10-30 secondes - Ralentissement
+      else if (elapsedTime < 30000) {
+        incrementCount = 1
+        nextDelay = 3000 + Math.random() * 1000 // 3-4 secondes
+      }
+      // Phase 3: 30-60 secondes - Plus lent
+      else if (elapsedTime < 60000) {
+        incrementCount = 1
+        nextDelay = 10000 + Math.random() * 2000 // 10-12 secondes
+      }
+      // Phase 4: Après 60 secondes - Bursts périodiques
+      else {
+        // Reset du timer pour recommencer le cycle
+        if (elapsedTime > 70000) {
+          startTime = Date.now()
+        }
+        incrementCount = Math.random() < 0.3 ? Math.floor(Math.random() * 15) + 5 : 1
+        nextDelay = 10000 + Math.random() * 5000 // 10-15 secondes
+      }
+
+      // Animation de roulette
+      setIsRolling(true)
+      
+      setTimeout(() => {
+        setLiveCounter(prev => prev + incrementCount)
+        setIsRolling(false)
+      }, 300) // Animation de 300ms
+
+      timeoutId = setTimeout(incrementCounter, nextDelay)
+    }
+
+    // Démarrer après 2 secondes pour laisser le temps de charger
+    timeoutId = setTimeout(incrementCounter, 2000)
+
+    return () => clearTimeout(timeoutId)
+  }, [])
 
   // Gérer le clic sur la sphère
   const handleLocationClick = (lat: number, lng: number) => {
@@ -237,6 +307,7 @@ export default function Home() {
             <WorldSphere 
               payments={stats.payments} 
               onLocationClick={handleLocationClick}
+              userLocation={userLocation}
             />
           </div>
         </div>
@@ -245,9 +316,26 @@ export default function Home() {
         <div className="w-full lg:w-1/2 lg:pl-8">
           <div className="text-center">
             {/* Titre principal */}
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-black mb-6 lg:mb-8">
-              {selectedLanguage.title} : {stats.totalPayments}
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-black mb-2 lg:mb-3">
+              {selectedLanguage.title}
             </h1>
+
+            {/* Compteur en dessous avec animation roulette */}
+            <div className="mb-6 lg:mb-8">
+              <div 
+                className={`text-base text-gray-600 transition-all duration-500 transform ${
+                  isRolling 
+                    ? 'scale-125 -translate-y-2 text-red-500 font-semibold animate-pulse' 
+                    : 'scale-100 translate-y-0'
+                }`}
+                style={{
+                  fontVariantNumeric: 'tabular-nums',
+                  willChange: 'transform, color'
+                }}
+              >
+                {liveCounter.toLocaleString()} personnes déjà
+              </div>
+            </div>
 
             {/* Bouton de paiement */}
             <button
@@ -261,6 +349,9 @@ export default function Home() {
             {userLocation && (
               <div className="mb-6 text-gray-600 text-sm lg:text-base">
                 <p>{selectedLanguage.position}: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}</p>
+                {userCity && (
+                  <p className="text-gray-700 font-medium mt-1">{userCity}</p>
+                )}
               </div>
             )}
 
