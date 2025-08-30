@@ -199,9 +199,9 @@ function LoadingEarth() {
 
 export default function WorldSphere({ payments, onLocationClick }: WorldSphereProps) {
   return (
-    <div className="w-full h-64 sm:h-80 md:h-96 bg-white">
+    <div className="w-full h-full bg-white">
       <Canvas
-        camera={{ position: [0, 0, 5], fov: 60 }}
+        camera={{ position: [0, 0, 5], fov: 75 }}
         style={{ background: 'white' }}
       >
         {/* Lumière ambiante neutre pour un éclairage général */}
@@ -220,7 +220,7 @@ export default function WorldSphere({ payments, onLocationClick }: WorldSpherePr
             enableRotate={true}
             rotateSpeed={0.5}
             zoomSpeed={0.8}
-            minDistance={3}
+            minDistance={3.5}
             maxDistance={8}
             dampingFactor={0.1}
             enableDamping={true}

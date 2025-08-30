@@ -229,54 +229,59 @@ export default function Home() {
         </select>
       </div>
 
-      {/* Sphère du monde */}
-      <div className="w-full">
-        <WorldSphere 
-          payments={stats.payments} 
-          onLocationClick={handleLocationClick}
-        />
-      </div>
+      {/* Layout principal : Sphère à gauche, contenu à droite */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center gap-8 lg:gap-12 min-h-[70vh]">
+        {/* Sphère du monde - Gauche */}
+        <div className="w-full lg:w-1/2 flex justify-center">
+          <div className="w-full max-w-[600px] h-96 sm:h-[500px] md:h-[600px]">
+            <WorldSphere 
+              payments={stats.payments} 
+              onLocationClick={handleLocationClick}
+            />
+          </div>
+        </div>
 
-      {/* Contenu principal */}
-      <div className="main-content container mx-auto px-2 sm:px-4 py-4 sm:py-8">
-        <div className="text-center">
-          {/* Titre principal */}
-          <h1 className="text-xl sm:text-2xl font-bold text-black mb-3 sm:mb-4">
-            {selectedLanguage.title} : {stats.totalPayments}
-          </h1>
+        {/* Contenu principal - Droite */}
+        <div className="w-full lg:w-1/2 lg:pl-8">
+          <div className="text-center">
+            {/* Titre principal */}
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-black mb-6 lg:mb-8">
+              {selectedLanguage.title} : {stats.totalPayments}
+            </h1>
 
-          {/* Bouton de paiement */}
-          <button
-            onClick={handlePayment}
-            className="bg-red-500 hover:bg-red-600 text-white font-bold py-1.5 px-4 sm:py-2 sm:px-5 rounded-full text-sm sm:text-base transition-colors duration-200"
-          >
-            Pay To Exist
-          </button>
+            {/* Bouton de paiement */}
+            <button
+              onClick={handlePayment}
+              className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 sm:py-4 sm:px-10 rounded-full text-lg sm:text-xl transition-colors duration-200 mb-6"
+            >
+              Pay To Exist
+            </button>
 
-          {/* Informations de localisation */}
-          {userLocation && (
-            <div className="mt-4 text-gray-600 text-sm">
-              <p>{selectedLanguage.position}: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}</p>
-            </div>
-          )}
-
-          {/* Liste des récents paiements */}
-          {stats.payments.length > 0 && (
-            <div className="mt-6 sm:mt-8">
-              <h2 className="text-lg sm:text-xl font-bold text-black mb-2 sm:mb-3">{selectedLanguage.recentConfirmations}</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                {stats.payments.slice(0, 6).map((payment, index) => (
-                  <div key={payment.id || index} className="bg-gray-100 p-3 sm:p-4 rounded-lg">
-                    <p className="font-semibold text-sm sm:text-base">{payment.city}</p>
-                    <p className="text-gray-600 text-xs sm:text-sm">{payment.country}</p>
-                    <p className="text-xs text-gray-500">
-                      {new Date(payment.created_at).toLocaleString('fr-FR')}
-                    </p>
-                  </div>
-                ))}
+            {/* Informations de localisation */}
+            {userLocation && (
+              <div className="mb-6 text-gray-600 text-sm lg:text-base">
+                <p>{selectedLanguage.position}: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}</p>
               </div>
-            </div>
-          )}
+            )}
+
+            {/* Liste des récents paiements */}
+            {stats.payments.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-lg sm:text-xl font-bold text-black mb-4 lg:mb-6 text-center">{selectedLanguage.recentConfirmations}</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {stats.payments.slice(0, 4).map((payment, index) => (
+                    <div key={payment.id || index} className="bg-gray-100 p-4 rounded-lg">
+                      <p className="font-semibold text-sm">{payment.city}</p>
+                      <p className="text-gray-600 text-xs">{payment.country}</p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(payment.created_at).toLocaleString('fr-FR')}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
